@@ -1,0 +1,1514 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新年利是理財大作戰 - 8-Bit Chiptune Edition</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@500;700;900&display=swap');
+
+  :root {
+    --pixel-red: #d32f2f;
+    --pixel-gold: #fbc02d;
+    --pixel-dark: #12121e;
+    --pixel-bg: #1e1b2e;
+    --pixel-cream: #fff9c4;
+    --pixel-green: #388e3c;
+    --pixel-purple: #7b1fa2;
+    --pixel-border: 4px solid #000;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--pixel-dark);
+    font-family: 'Noto Sans TC', sans-serif;
+    color: #fff;
+    image-rendering: pixelated;
+    user-select: none;
+    overflow-x: hidden;
+  }
+
+  /* 8-Bit Top Bar */
+  .arcade-header {
+    background: #0a0a14;
+    border-bottom: 4px solid var(--pixel-gold);
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .arcade-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    color: var(--pixel-gold);
+    text-shadow: 2px 2px #000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .arcade-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .audio-btn, .cat-btn {
+    background: #2a223e;
+    border: 3px solid var(--pixel-gold);
+    color: var(--pixel-gold);
+    font-family: 'Press Start 2P', 'Noto Sans TC', monospace;
+    font-size: 11px;
+    padding: 6px 12px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 #000;
+    transition: 0.1s;
+  }
+  .audio-btn:hover, .cat-btn:hover {
+    background: var(--pixel-gold);
+    color: #000;
+    transform: translateY(-2px);
+  }
+  .audio-btn:active, .cat-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #000;
+  }
+
+  /* Game Shell */
+  .game-container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 0 15px;
+    position: relative;
+    min-height: calc(100vh - 80px);
+  }
+
+  /* CRT Scanline Overlay */
+  .crt-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+    background-size: 100% 4px;
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0.45;
+  }
+
+  /* 8-Bit Boxes */
+  .pixel-card {
+    background: #252338;
+    border: 4px solid #000;
+    box-shadow: 6px 6px 0 #000;
+    border-radius: 4px;
+    padding: 24px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .pixel-card::before {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px; right: 2px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  /* HUD status bar */
+  .hud-wallet {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #151324;
+    border: 3px solid #ff5252;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+  }
+  .hud-pocket {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--pixel-gold);
+  }
+
+  /* Scaffolding Formula Box */
+  .scaffold-box {
+    background: #181628;
+    border: 3px dashed var(--pixel-gold);
+    padding: 16px;
+    margin: 18px 0;
+    border-radius: 4px;
+  }
+  .scaffold-box h4 {
+    margin: 0 0 10px;
+    color: var(--pixel-gold);
+    font-size: 15px;
+  }
+  .formula-badge {
+    background: #000;
+    color: #4fc3f7;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    padding: 10px;
+    display: inline-block;
+    border: 2px solid #0288d1;
+    margin: 6px 0;
+  }
+
+  /* Form inputs & pixel buttons */
+  .pixel-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    margin: 14px 0;
+  }
+  .pixel-input {
+    background: #0a0a14;
+    border: 3px solid #5c6bc0;
+    color: #fff;
+    font-family: 'Press Start 2P', 'Noto Sans TC', monospace;
+    font-size: 14px;
+    padding: 12px 14px;
+    box-shadow: inset 3px 3px 0 #000;
+    flex: 1;
+    min-width: 140px;
+  }
+  .pixel-input:focus {
+    outline: none;
+    border-color: var(--pixel-gold);
+    background: #111122;
+  }
+  .submit-btn {
+    background: #c62828;
+    border: 4px solid #ffcdd2;
+    color: #fff;
+    font-family: 'Press Start 2P', 'Noto Sans TC', monospace;
+    font-size: 13px;
+    padding: 14px 24px;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 #000;
+    transition: 0.1s;
+    text-transform: uppercase;
+  }
+  .submit-btn:hover {
+    background: #e53935;
+    transform: translateY(-2px);
+  }
+  .submit-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 #000;
+  }
+
+  /* FULL SCREEN VISUAL NOVEL STAGE */
+  #vn-fullscreen-stage {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 500;
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+  }
+  #vn-fullscreen-stage.active { display: flex; }
+
+  /* Background themes */
+  .bg-livingroom {
+    background: radial-gradient(circle at 50% 30%, #511818 10%, #200909 90%);
+  }
+  .bg-livingroom::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,215,0,0.06) 0px, rgba(255,215,0,0.06) 80px, transparent 80px, transparent 160px),
+      linear-gradient(0deg, #180505 0%, transparent 40%);
+    pointer-events: none;
+  }
+  .bg-sisterroom {
+    background: radial-gradient(circle at 60% 40%, #4a284e 10%, #1a0e1c 90%);
+  }
+  .bg-sisterroom::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(45deg, rgba(255,182,193,0.05) 0, rgba(255,182,193,0.05) 40px, transparent 40px, transparent 80px),
+      linear-gradient(0deg, #130a15 0%, transparent 35%);
+    pointer-events: none;
+  }
+  .bg-fatherroom {
+    background: radial-gradient(circle at 40% 30%, #1a2f42 10%, #09131c 90%);
+  }
+  .bg-fatherroom::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(90deg, rgba(144,202,249,0.05) 0, rgba(144,202,249,0.05) 60px, transparent 60px, transparent 120px),
+      linear-gradient(0deg, #060b10 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  /* Full Screen Character Sprite Container */
+  .vn-actor-stage {
+    flex: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 20px;
+    z-index: 510;
+  }
+  .large-sprite {
+    height: 65vh;
+    max-height: 520px;
+    filter: drop-shadow(0 0 16px rgba(0,0,0,0.85));
+    transition: transform 0.2s;
+  }
+  .large-sprite.speaking {
+    animation: mouthBob 0.25s infinite alternate ease-in-out;
+  }
+  @keyframes mouthBob {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-8px); }
+  }
+
+  /* Particle Layer (Coins / Confetti) */
+  .vn-particles {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 505;
+  }
+  .pixel-coin {
+    position: absolute;
+    width: 22px; height: 22px;
+    background: #ffd700;
+    border: 3px solid #b8860b;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #ffe082;
+    animation: coinFall linear forwards;
+  }
+  @keyframes coinFall {
+    0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* Bottom Retro Dialogue Box */
+  .vn-dialogue-box {
+    z-index: 520;
+    background: rgba(14, 13, 25, 0.96);
+    border-top: 6px solid var(--pixel-gold);
+    border-left: 6px solid #000;
+    border-right: 6px solid #000;
+    box-shadow: 0 -8px 0 rgba(0,0,0,0.8);
+    padding: 24px 36px 28px;
+    min-height: 190px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  .vn-speaker-tag {
+    align-self: flex-start;
+    background: var(--pixel-red);
+    color: var(--pixel-cream);
+    font-family: 'Press Start 2P', 'Noto Sans TC', monospace;
+    font-size: 14px;
+    padding: 6px 18px;
+    border: 3px solid #fff;
+    box-shadow: 4px 4px 0 #000;
+    margin-bottom: 12px;
+  }
+  .vn-text {
+    font-size: 19px;
+    line-height: 1.6;
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .vn-prompt-tap {
+    align-self: flex-end;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    color: var(--pixel-gold);
+    animation: blinkTap 0.8s infinite;
+  }
+  @keyframes blinkTap {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  /* Missing Unit Modal Alert */
+  .unit-warning-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.85);
+    z-index: 800;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .unit-warning-box {
+    background: #d32f2f;
+    border: 6px solid #fff;
+    box-shadow: 8px 8px 0 #000;
+    padding: 26px;
+    max-width: 520px;
+    text-align: center;
+    animation: wobble 0.3s ease-in-out;
+  }
+  @keyframes wobble {
+    0% { transform: scale(0.9); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  /* Cover Screen */
+  .cover-card {
+    text-align: center;
+    padding: 50px 20px;
+  }
+  .cover-title {
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--pixel-gold);
+    text-shadow: 4px 4px 0 #c62828, 7px 7px 0 #000;
+    margin-bottom: 14px;
+  }
+  .cover-subtitle {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    color: #81d4fa;
+    margin-bottom: 30px;
+  }
+  .big-envelope {
+    width: 140px;
+    height: 180px;
+    background: #d32f2f;
+    border: 5px solid #000;
+    box-shadow: 6px 6px 0 #000;
+    margin: 0 auto 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .big-envelope:hover {
+    transform: scale(1.05) rotate(3deg);
+  }
+  .big-envelope-seal {
+    width: 60px; height: 60px;
+    background: #fbc02d;
+    border-radius: 50%;
+    border: 3px solid #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 26px;
+    font-weight: 900;
+    color: #b71c1c;
+  }
+
+  /* Choices Grid */
+  .choices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .choice-card-btn {
+    background: #1c1a2d;
+    border: 3px solid #7986cb;
+    box-shadow: 4px 4px 0 #000;
+    padding: 16px;
+    text-align: left;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.15s;
+    border-radius: 4px;
+  }
+  .choice-card-btn:hover {
+    background: #2a2544;
+    border-color: var(--pixel-gold);
+    transform: translateY(-3px);
+  }
+
+  /* Pinned Banner */
+  .pinned-banner {
+    background: #004d40;
+    border: 3px solid #00bfa5;
+    padding: 12px;
+    margin-bottom: 18px;
+    border-radius: 4px;
+  }
+  .pinned-banner h4 {
+    margin: 0 0 6px;
+    color: #64ffda;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="crt-overlay"></div>
+
+<!-- Arcade Header -->
+<div class="arcade-header">
+  <div class="arcade-title">
+    <span>🧧</span>
+    <span>CNY MATH QUEST 8-BIT</span>
+  </div>
+  <div class="arcade-controls">
+    <button class="audio-btn" id="audioToggleBtn" onclick="toggleBGM()">🔊 音樂: 開</button>
+    <button class="cat-btn" onclick="triggerLuckyCat()" title="跳關秘技：直達終局！">🐱 招財貓 (SKIP)</button>
+  </div>
+</div>
+
+<div class="game-container">
+
+  <!-- HUD STATUS -->
+  <div class="hud-wallet" id="hudBar" style="display: none;">
+    <div class="hud-pocket">
+      <span>🧧 壓歲錢手持：</span>
+      <span id="hudMoney">$1,000</span>
+    </div>
+    <div style="font-family: 'Press Start 2P', monospace; font-size: 11px; color: #81d4fa;" id="hudLevelBadge">
+      LV.1 MOTHER
+    </div>
+  </div>
+
+  <!-- STAGE 0: COVER -->
+  <div class="pixel-card cover-card" id="screen-cover">
+    <div class="cover-title">新年利是理財大作戰</div>
+    <div class="cover-subtitle">WHO STOLE MY RED POCKET? [8-BIT]</div>
+    <div class="big-envelope" onclick="startOpeningCutscene()">
+      <div class="big-envelope-seal">福</div>
+    </div>
+    <button class="submit-btn" style="font-size: 16px; padding: 18px 36px;" onclick="startOpeningCutscene()">
+      🧧 拆利是開始遊戲 (START)
+    </button>
+    <p style="color: #9fa8da; margin-top: 24px; font-size: 14px;">
+      💡 第一身理財視角 • 8-Bit 芯片音效 • 單利息與複利息大博弈
+    </p>
+  </div>
+
+  <!-- LEVEL 1: MOTHER -->
+  <div class="pixel-card hidden" id="screen-lv1">
+    <h2 style="color: var(--pixel-gold); margin-top:0;">關卡 1：媽媽的「長線保管」提議</h2>
+    <p style="font-size: 16px; line-height: 1.6;">
+      媽媽笑臉盈盈咁對你講：「阿仔/阿女，細路仔帶住咁多錢好危險！媽媽幫你保管呢 <strong>$1,000</strong>，用 <strong>單利息 (Simple Interest)</strong> 每年畀 <strong>3% 年利率 (3% p.a.)</strong>，幫你存足 <strong>5 年</strong>！」
+    </p>
+
+    <div class="scaffold-box">
+      <h4>【解題鷹架：單利息公式】</h4>
+      <div class="formula-badge">I = P × r × t</div>
+      <p style="font-size: 13px; color: #b0bec5; margin: 4px 0 0;">
+        其中 $P$ 為本金 (Principal)，$r$ 為年利率 (Interest Rate)，$t$ 為年期 (Time in years)，$I$ 為利息 (Interest)。
+      </p>
+    </div>
+
+    <div class="pixel-row">
+      <label>本金 ($P$)：</label>
+      <input type="text" class="pixel-input" id="lv1-p" placeholder="請填寫本金">
+    </div>
+    <div class="pixel-row">
+      <label>年利率 ($r$)：</label>
+      <input type="text" class="pixel-input" id="lv1-r" placeholder="例如 3% 或 0.03">
+    </div>
+    <div class="pixel-row">
+      <label>年期 ($t$)：</label>
+      <input type="text" class="pixel-input" id="lv1-t" placeholder="請填寫年期 (年)">
+    </div>
+    <div class="pixel-row">
+      <label><strong>最終利息 ($I$)：</strong></label>
+      <input type="text" class="pixel-input" id="lv1-ans" placeholder="填寫最終利息金額 (注意單位！)">
+    </div>
+
+    <div style="margin-top: 20px;">
+      <button class="submit-btn" onclick="submitLevel1()">提交媽媽方案計算 ➔</button>
+    </div>
+  </div>
+
+  <!-- LEVEL 2: SISTER -->
+  <div class="pixel-card hidden" id="screen-lv2">
+    <h2 style="color: #ff80ab; margin-top:0;">關卡 2：姐姐的高息誘惑</h2>
+    <p style="font-size: 16px; line-height: 1.6;">
+      姐姐走過來拍你膊頭：「媽媽 3% 咁縮骨！借畀姐姐啦，姐姐畀 <strong>5% 年利率 (5% p.a.)</strong> 單利息！不過姐姐淨係借 <strong>3 年 8 個月</strong>，夠期即還！」
+    </p>
+
+    <div class="scaffold-box">
+      <h4>【解題鷹架：月份換算與單利息】</h4>
+      <div class="formula-badge">I = P × r × t</div>
+      <p style="font-size: 13px; color: #b0bec5; margin: 4px 0 0;">
+        💡 提示：年期 $t$ 必須以「年」為單位。8 個月換算為年數是 $\frac{8}{12}$ 年。四捨五入至最接近整數元 (to the nearest dollar)。
+      </p>
+    </div>
+
+    <div class="pixel-row">
+      <label style="width: 100%;"><strong>完整列式 (代入所有數值)：</strong></label>
+      <input type="text" class="pixel-input" id="lv2-eq" style="width: 100%;" placeholder="請輸入完整列式">
+    </div>
+    <div class="pixel-row">
+      <label><strong>最終利息 (四捨五入至整數元)：</strong></label>
+      <input type="text" class="pixel-input" id="lv2-ans" placeholder="計算所得利息 (記得單位！)">
+    </div>
+
+    <div style="margin-top: 20px;">
+      <button class="submit-btn" onclick="submitLevel2()">提交姐姐方案計算 ➔</button>
+    </div>
+  </div>
+
+  <!-- LEVEL 3: FATHER -->
+  <div class="pixel-card hidden" id="screen-lv3">
+    <h2 style="color: #80d8ff; margin-top:0;">關卡 3：爸爸的金融大博弈</h2>
+
+    <!-- Part 1: Initial Compound Offer -->
+    <div id="lv3-part1">
+      <p style="font-size: 16px; line-height: 1.6;">
+        爸爸推推金絲眼鏡，推開房門：「佢哋啲單利息過時喇！爸爸同你做 <strong>複利息 (Compound Interest)</strong>！年利率 <strong>5%</strong>，<strong>每年計息一次 (Compounded Yearly)</strong>，存 <strong>5 年</strong>！」
+      </p>
+
+      <div class="scaffold-box">
+        <h4>【解題鷹架：複利息本利和公式】</h4>
+        <div class="formula-badge">A = P(1 + r)^n</div>
+        <p style="font-size: 13px; color: #b0bec5; margin: 4px 0 0;">
+          其中 $A$ 為本利和 (Total Amount)，$r$ 為每期利率，$n$ 為總期數。四捨五入至最接近整數元。
+        </p>
+      </div>
+
+      <div class="pixel-row">
+        <label>本金 ($P$)：</label>
+        <input type="text" class="pixel-input" id="lv3-p1" placeholder="本金">
+        <label>年利率 ($r$)：</label>
+        <input type="text" class="pixel-input" id="lv3-r1" placeholder="年利率">
+        <label>總期數 ($n$)：</label>
+        <input type="text" class="pixel-input" id="lv3-n1" placeholder="總期數">
+      </div>
+      <div class="pixel-row">
+        <label><strong>5年後所得本利和 ($A$)：</strong></label>
+        <input type="text" class="pixel-input" id="lv3-ans1" placeholder="本利和 (四捨五入至整數元，寫單位！)">
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button class="submit-btn" onclick="submitLevel3Part1()">核算爸爸初案 ➔</button>
+      </div>
+    </div>
+
+    <!-- Part 2: Father backtracks & Warm-up -->
+    <div id="lv3-part2" class="hidden">
+      <div class="scaffold-box" style="border-color: #ff5252;">
+        <h4 style="color: #ff5252;">⚠️ 爸爸反悔改口：「咁多？！不行不行！爸爸改方案：」</h4>
+        <p style="margin: 0; font-size: 15px;">
+          改為：年利率 <strong>3%</strong>，存 <strong>3.5 年</strong>，但改為 <strong>每半年計息一次 (Compounded Half-Yearly)</strong>！
+        </p>
+      </div>
+
+      <div id="lv3-warmup-section">
+        <h3 style="color: var(--pixel-gold);">【暖身考核：搞清計息細節】</h3>
+        <p style="font-size: 14px; color: #cfd8dc;">先回答以下三條暖身題，答啱先准正式列式！</p>
+
+        <div class="pixel-row">
+          <label>(a) 若每半年計息一次，一年有幾多期？</label>
+          <input type="text" class="pixel-input" id="lv3-qa" placeholder="填寫期數">
+        </div>
+        <div class="pixel-row">
+          <label>(b) 存 3.5 年，總共計息幾多次？</label>
+          <input type="text" class="pixel-input" id="lv3-qb" placeholder="填寫總次數">
+        </div>
+        <div class="pixel-row">
+          <label>(c) 每半年的每期利率是多少？</label>
+          <input type="text" class="pixel-input" id="lv3-qc" placeholder="例如 1.5% 或 0.015">
+        </div>
+
+        <button class="submit-btn" style="background:#00897b; border-color:#80cbc4;" onclick="submitWarmup()">
+          驗證暖身答案 ➔
+        </button>
+      </div>
+
+      <div id="lv3-final-calc-section" class="hidden" style="margin-top: 20px;">
+        <div class="pinned-banner" id="pinnedWarmupResults">
+          <h4>📌 你的暖身分析成果 (置頂鷹架)：</h4>
+          <div style="font-size: 14px; line-height: 1.8;">
+            ✔ 每年期數 = <strong>2 期</strong><br>
+            ✔ 3.5 年總期數 ($n$) = <strong>7 期</strong><br>
+            ✔ 每期利率 ($r$) = <strong>1.5% (0.015)</strong>
+          </div>
+        </div>
+
+        <div class="pixel-row">
+          <label style="width:100%;"><strong>請輸入完整複利息計算列式：</strong></label>
+          <input type="text" class="pixel-input" id="lv3-final-eq" style="width: 100%;" placeholder="輸入完整代入算式">
+        </div>
+        <div class="pixel-row">
+          <label><strong>最終利息 (四捨五入至最接近整數元)：</strong></label>
+          <input type="text" class="pixel-input" id="lv3-final-ans" placeholder="填寫利息金額 (四捨五入，寫單位！)">
+        </div>
+
+        <button class="submit-btn" onclick="submitLevel3Final()">完成爸爸方案計算 ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINAL CHOICES -->
+  <div class="pixel-card hidden" id="screen-choices">
+    <h2 style="color: var(--pixel-gold); text-align: center; margin-top: 0;">🏆 壓歲錢命運之輪：全家齊集！</h2>
+    <p style="text-align: center; font-size: 16px;">
+      經過縝密嘅心算同列式，全家三種方案嘅真實利息已經無所遁形！你手執 $1,000，決定點處理？
+    </p>
+
+    <div class="choices-grid">
+      <div class="choice-card-btn" onclick="triggerEnding(1)">
+        <h3 style="margin: 0 0 8px; color: #ffca28;">1. 媽媽方案</h3>
+        <p style="font-size: 14px; margin: 0; color: #b0bec5;">利息：<strong>$150</strong> (5年單利)<br>「交畀媽媽保管最安心喇…係咪？」</p>
+      </div>
+      <div class="choice-card-btn" onclick="triggerEnding(2)">
+        <h3 style="margin: 0 0 8px; color: #ff80ab;">2. 姐姐方案</h3>
+        <p style="font-size: 14px; margin: 0; color: #b0bec5;">利息：<strong>$183</strong> (3年8個月)<br>「回報最高！姐姐話借完買新鞋…」</p>
+      </div>
+      <div class="choice-card-btn" onclick="triggerEnding(3)">
+        <h3 style="margin: 0 0 8px; color: #80d8ff;">3. 爸爸方案</h3>
+        <p style="font-size: 14px; margin: 0; color: #b0bec5;">利息：<strong>$110</strong> (半年複利)<br>「金融精英爸爸，應該最老實？」</p>
+      </div>
+      <div class="choice-card-btn" onclick="triggerEnding(4)">
+        <h3 style="margin: 0 0 8px; color: #aed581;">4. 全數捐畀慈善機構</h3>
+        <p style="font-size: 14px; margin: 0; color: #b0bec5;">利息：<strong>$0</strong> (無私奉獻)<br>「助人為快樂之本，做個大善人！」</p>
+      </div>
+      <div class="choice-card-btn" onclick="triggerEnding(5)">
+        <h3 style="margin: 0 0 8px; color: #ffb74d;">5. 買 $20 蛋糕，存低 $980</h3>
+        <p style="font-size: 14px; margin: 0; color: #b0bec5;">即時享樂：<strong>剩餘 $980</strong><br>「食個特價小蛋糕獎勵下自己先！」</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FATHER SHOWDOWN (BRANCH 3) -->
+  <div class="pixel-card hidden" id="screen-dad-showdown">
+    <h2 style="color: #80d8ff; margin-top: 0;">💼 爸爸方案履約時刻！</h2>
+    <p style="font-size: 17px; line-height: 1.6;">
+      3.5 年之後，爸爸西裝筆挺咁行過來，面帶微笑喺公事包入面數咗 <strong>$1,050</strong> 現金交到你手上：「阿仔/阿女，呢度係本金加利息，拎去啦！」
+    </p>
+    <div style="background: #111; border: 3px solid #ffb74d; padding: 18px; margin: 20px 0;">
+      <p style="margin: 0; font-size: 16px; color: #ffe082;">
+        你手握住呢疊 $1,050 現金，腦海閃過 3.5 年前你親手計出黎嘅算式……你嘅反應係：
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+      <button class="submit-btn" style="flex:1; background:#c62828;" onclick="handleDadChoice('wrong')">
+        😠 唔啱數喎爸爸！ (There is something wrong!)
+      </button>
+      <button class="submit-btn" style="flex:1; background:#2e7d32;" onclick="handleDadChoice('thank')">
+        😊 多謝爸爸！ (Thank you dad.)
+      </button>
+    </div>
+  </div>
+
+  <!-- RESULT CARD (SHOWN AFTER CUTSCENE) -->
+  <div class="pixel-card hidden" id="screen-result">
+    <h2 id="resultTitle" style="margin-top:0; font-size: 26px;"></h2>
+    <div id="resultBody" style="font-size: 17px; line-height: 1.8;"></div>
+    <div style="margin-top: 30px;">
+      <button class="submit-btn" onclick="location.reload()">🔄 重新開始遊戲 (PLAY AGAIN)</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- FULLSCREEN VISUAL NOVEL STAGE -->
+<div id="vn-fullscreen-stage">
+  <div class="vn-particles" id="vnParticles"></div>
+  <div class="vn-actor-stage" id="vnActorStage">
+    <!-- SVG Large Sprites dynamically rendered here -->
+  </div>
+  <div class="vn-dialogue-box" onclick="handleVNBoxClick()">
+    <div>
+      <div class="vn-speaker-tag" id="vnSpeaker">【角色】</div>
+      <div class="vn-text" id="vnText">對話內容加載中……</div>
+    </div>
+    <div class="vn-prompt-tap">▼ 點擊畫面繼續 (TAP TO CONTINUE)</div>
+  </div>
+</div>
+
+<!-- MISSING UNIT WARNING MODAL -->
+<div class="unit-warning-overlay" id="unitWarningModal">
+  <div class="unit-warning-box">
+    <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
+    <h2 style="margin: 0 0 10px; color: #fff;">等等！好似差咗啲嘢……</h2>
+    <p style="font-size: 18px; line-height: 1.6; color: #ffebee;">
+      你係咪唔記得寫「<strong>單位</strong>」呀？！<br>
+      請加上 <strong>$</strong> 或 <strong>元</strong> 啦！
+    </p>
+    <button class="submit-btn" style="background:#fff; color:#c62828; border-color:#000; margin-top: 14px;" onclick="closeUnitWarning()">
+      我知道喇，即刻改！
+    </button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   8-BIT CHIPTUNE WEB AUDIO ENGINE
+   Synthesizes Square/Triangle chiptune music & authentic SFX
+========================================================= */
+let audioCtx = null;
+let bgmOsc = null;
+let bgmBass = null;
+let bgmGain = null;
+let isBgmPlaying = false;
+let isMuted = false;
+let bgmInterval = null;
+let currentNoteIndex = 0;
+
+// Pentatonic festive chiptune loop frequencies (C4, D4, E4, G4, A4, C5, D5, E5)
+const chiptuneNotes = [
+  523.25, 523.25, 659.25, 783.99,  // C5, C5, E5, G5
+  880.00, 783.99, 659.25, 523.25,  // A5, G5, E5, C5
+  659.25, 587.33, 523.25, 587.33,  // E5, D5, C5, D5
+  659.25, 783.99, 880.00, 1046.50, // E5, G5, A5, C6
+  880.00, 783.99, 659.25, 587.33,  // A5, G5, E5, D5
+  523.25, 440.00, 523.25, 659.25,  // C5, A4, C5, E5
+  587.33, 587.33, 659.25, 587.33,  // D5, D5, E5, D5
+  523.25, 523.25, 523.25, 523.25   // C5, C5, C5, rest
+];
+
+const bassNotes = [
+  130.81, 130.81, 164.81, 196.00,  // C3, C3, E3, G3
+  220.00, 196.00, 164.81, 130.81,  // A3, G3, E3, C3
+  164.81, 146.83, 130.81, 146.83,  // E3, D3, C3, D3
+  164.81, 196.00, 220.00, 261.63   // E3, G3, A3, C4
+];
+
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioContextClass();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function startChiptuneBGM() {
+  initAudio();
+  if (isBgmPlaying || isMuted) return;
+
+  isBgmPlaying = true;
+  currentNoteIndex = 0;
+
+  bgmInterval = setInterval(() => {
+    if (!isBgmPlaying || isMuted) return;
+
+    const time = audioCtx.currentTime;
+    const freq = chiptuneNotes[currentNoteIndex % chiptuneNotes.length];
+    const bFreq = bassNotes[Math.floor((currentNoteIndex / 2) % bassNotes.length)];
+
+    // Melody: Square wave with 8-bit envelope
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, time);
+
+    g.gain.setValueAtTime(0.06, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+
+    osc.connect(g);
+    g.connect(audioCtx.destination);
+    osc.start(time);
+    osc.stop(time + 0.18);
+
+    // Bass: Triangle wave
+    if (currentNoteIndex % 2 === 0) {
+      const bOsc = audioCtx.createOscillator();
+      const bGain = audioCtx.createGain();
+      bOsc.type = 'triangle';
+      bOsc.frequency.setValueAtTime(bFreq, time);
+      bGain.gain.setValueAtTime(0.08, time);
+      bGain.gain.exponentialRampToValueAtTime(0.005, time + 0.35);
+
+      bOsc.connect(bGain);
+      bGain.connect(audioCtx.destination);
+      bOsc.start(time);
+      bOsc.stop(time + 0.35);
+    }
+
+    currentNoteIndex++;
+  }, 190);
+}
+
+function stopChiptuneBGM() {
+  if (bgmInterval) {
+    clearInterval(bgmInterval);
+    bgmInterval = null;
+  }
+  isBgmPlaying = false;
+}
+
+function toggleBGM() {
+  initAudio();
+  isMuted = !isMuted;
+  const btn = document.getElementById('audioToggleBtn');
+  if (isMuted) {
+    stopChiptuneBGM();
+    btn.innerHTML = '🔇 音樂: 關';
+    btn.style.color = '#ff8a80';
+  } else {
+    btn.innerHTML = '🔊 音樂: 開';
+    btn.style.color = 'var(--pixel-gold)';
+    startChiptuneBGM();
+  }
+}
+
+// Retro Sound Effects (SFX)
+function playRetroCoinSFX() {
+  initAudio();
+  if (isMuted) return;
+  const notes = [523, 659, 783, 1046, 1318];
+  notes.forEach((freq, idx) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.05);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime + idx * 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (idx + 1) * 0.05 + 0.08);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime + idx * 0.05);
+    osc.stop(audioCtx.currentTime + (idx + 1) * 0.05 + 0.08);
+  });
+}
+
+function playRetroBlipSFX() {
+  initAudio();
+  if (isMuted) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.04);
+}
+
+function playRetroSuccessSFX() {
+  initAudio();
+  if (isMuted) return;
+  const notes = [523.25, 659.25, 783.99, 1046.50];
+  notes.forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.08);
+    gain.gain.setValueAtTime(0.09, audioCtx.currentTime + i * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.08 + 0.25);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime + i * 0.08);
+    osc.stop(audioCtx.currentTime + i * 0.08 + 0.25);
+  });
+}
+
+function playRetroBuzzerSFX() {
+  initAudio();
+  if (isMuted) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+  osc.frequency.linearRampToValueAtTime(90, audioCtx.currentTime + 0.35);
+  gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.35);
+}
+
+function playRetroCatSFX() {
+  initAudio();
+  if (isMuted) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 0.3);
+  gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.35);
+}
+
+/* =========================================================
+   8-BIT LARGE SPRITES (SVG)
+========================================================= */
+const SPRITES = {
+  mother: `
+    <svg class="large-sprite speaking" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+      <rect x="25" y="10" width="50" height="50" fill="#4a2612"/>
+      <rect x="20" y="25" width="15" height="40" fill="#4a2612"/>
+      <rect x="65" y="25" width="15" height="40" fill="#4a2612"/>
+      <rect x="30" y="20" width="40" height="40" fill="#ffdbac"/>
+      <rect x="36" y="32" width="6" height="6" fill="#111"/>
+      <rect x="58" y="32" width="6" height="6" fill="#111"/>
+      <rect x="32" y="40" width="6" height="4" fill="#ff8a80"/>
+      <rect x="62" y="40" width="6" height="4" fill="#ff8a80"/>
+      <rect x="44" y="46" width="12" height="6" fill="#d81b60"/>
+      <rect x="42" y="60" width="16" height="10" fill="#ffdbac"/>
+      <rect x="20" y="68" width="60" height="60" fill="#eeeeee"/>
+      <rect x="30" y="72" width="40" height="8" fill="#ffd700"/>
+      <rect x="46" y="74" width="8" height="8" fill="#e91e63"/>
+      <rect x="15" y="75" width="10" height="50" fill="#eeeeee"/>
+      <rect x="75" y="75" width="10" height="50" fill="#eeeeee"/>
+    </svg>`,
+  sister: `
+    <svg class="large-sprite speaking" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+      <rect x="25" y="8" width="50" height="65" fill="#1b1b24"/>
+      <rect x="18" y="25" width="14" height="65" fill="#1b1b24"/>
+      <rect x="68" y="25" width="14" height="65" fill="#1b1b24"/>
+      <rect x="32" y="22" width="36" height="38" fill="#ffdbac"/>
+      <rect x="38" y="32" width="5" height="7" fill="#283593"/>
+      <rect x="57" y="32" width="5" height="7" fill="#283593"/>
+      <rect x="45" y="44" width="10" height="5" fill="#ff4081"/>
+      <rect x="43" y="58" width="14" height="8" fill="#ffdbac"/>
+      <rect x="24" y="66" width="52" height="60" fill="#e91e63"/>
+      <rect x="30" y="68" width="40" height="12" fill="#f06292"/>
+      <rect x="16" y="72" width="10" height="45" fill="#ffdbac"/>
+      <rect x="74" y="72" width="10" height="45" fill="#ffdbac"/>
+    </svg>`,
+  father: `
+    <svg class="large-sprite speaking" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+      <rect x="26" y="8" width="48" height="30" fill="#212121"/>
+      <rect x="30" y="22" width="40" height="38" fill="#f1c27d"/>
+      <!-- Glasses -->
+      <rect x="34" y="30" width="13" height="10" fill="none" stroke="#fbc02d" stroke-width="3"/>
+      <rect x="53" y="30" width="13" height="10" fill="none" stroke="#fbc02d" stroke-width="3"/>
+      <rect x="47" y="33" width="6" height="3" fill="#fbc02d"/>
+      <rect x="39" y="34" width="4" height="4" fill="#000"/>
+      <rect x="58" y="34" width="4" height="4" fill="#000"/>
+      <rect x="42" y="44" width="16" height="4" fill="#212121"/>
+      <rect x="45" y="50" width="10" height="4" fill="#b71c1c"/>
+      <rect x="42" y="58" width="16" height="8" fill="#f1c27d"/>
+      <rect x="20" y="66" width="60" height="64" fill="#263238"/>
+      <rect x="38" y="66" width="24" height="64" fill="#eceff1"/>
+      <polygon points="50,72 46,115 54,115" fill="#c62828"/>
+      <rect x="12" y="70" width="12" height="55" fill="#263238"/>
+      <rect x="76" y="70" width="12" height="55" fill="#263238"/>
+    </svg>`,
+  kid_hands: `
+    <svg class="large-sprite" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="30" width="60" height="75" fill="#d32f2f" stroke="#000" stroke-width="3"/>
+      <circle cx="50" cy="65" r="16" fill="#fbc02d"/>
+      <text x="50" y="72" font-size="16" font-weight="900" text-anchor="middle" fill="#b71c1c">福</text>
+      <!-- Hands holding -->
+      <rect x="8" y="65" width="16" height="32" fill="#ffdbac" rx="6"/>
+      <rect x="76" y="65" width="16" height="32" fill="#ffdbac" rx="6"/>
+    </svg>`
+};
+
+/* =========================================================
+   FULL SCREEN CUTSCENE SEQUENCER
+========================================================= */
+let vnQueue = [];
+let vnCallback = null;
+
+function showVNCutscene(bgClass, speaker, text, spriteKey, onComplete) {
+  const stage = document.getElementById('vn-fullscreen-stage');
+  stage.className = '';
+  stage.classList.add('active', bgClass);
+
+  document.getElementById('vnSpeaker').innerText = `【${speaker}】`;
+  document.getElementById('vnText').innerText = text;
+  document.getElementById('vnActorStage').innerHTML = SPRITES[spriteKey] || '';
+
+  playRetroBlipSFX();
+  vnCallback = onComplete;
+}
+
+function runDialogueChain(dialogueList, onAllDone) {
+  vnQueue = [...dialogueList];
+  function next() {
+    if (vnQueue.length === 0) {
+      document.getElementById('vn-fullscreen-stage').classList.remove('active');
+      if (onAllDone) onAllDone();
+      return;
+    }
+    const cur = vnQueue.shift();
+    showVNCutscene(cur.bg, cur.speaker, cur.text, cur.sprite, next);
+  }
+  next();
+}
+
+function handleVNBoxClick() {
+  if (vnCallback) {
+    playRetroBlipSFX();
+    const cb = vnCallback;
+    vnCallback = null;
+    cb();
+  }
+}
+
+function spawnCoinRain() {
+  const container = document.getElementById('vnParticles');
+  container.innerHTML = '';
+  for (let i = 0; i < 30; i++) {
+    const coin = document.createElement('div');
+    coin.className = 'pixel-coin';
+    coin.style.left = `${Math.random() * 95}vw`;
+    coin.style.animationDuration = `${0.8 + Math.random() * 1.4}s`;
+    coin.style.animationDelay = `${Math.random() * 0.7}s`;
+    container.appendChild(coin);
+  }
+  playRetroCoinSFX();
+  setTimeout(() => { container.innerHTML = ''; }, 2600);
+}
+
+/* =========================================================
+   GAME PROGRESSION & VALIDATION
+========================================================= */
+function checkHasUnit(str) {
+  const s = String(str).trim();
+  return (s.includes('$') || s.includes('元') || s.includes('塊') || s.includes('圓'));
+}
+
+function triggerUnitWarning() {
+  playRetroBuzzerSFX();
+  document.getElementById('unitWarningModal').style.display = 'flex';
+}
+function closeUnitWarning() {
+  document.getElementById('unitWarningModal').style.display = 'none';
+}
+
+function startOpeningCutscene() {
+  startChiptuneBGM();
+  document.getElementById('screen-cover').classList.add('hidden');
+  document.getElementById('hudBar').style.display = 'flex';
+
+  spawnCoinRain();
+  runDialogueChain([
+    {
+      bg: 'bg-livingroom',
+      speaker: '我 (第一身)',
+      text: '「哇！拆開利是封嗰一刻，成疊金色光芒射出黎！整整一千蚊大鈔 ($1,000) 呀！發達啦！」',
+      sprite: 'kid_hands'
+    },
+    {
+      bg: 'bg-livingroom',
+      speaker: '我 (第一身)',
+      text: '「有咗呢筆巨款，我可以買好多玩具同零食……等等，屋企人好似全部行緊過黎？！」',
+      sprite: 'kid_hands'
+    },
+    {
+      bg: 'bg-livingroom',
+      speaker: '媽媽',
+      text: '「乖仔/乖女～新年快樂！見到你拎住咁大封利是，媽媽好擔心你唔識理財……等媽媽幫你啦！」',
+      sprite: 'mother'
+    }
+  ], () => {
+    document.getElementById('screen-lv1').classList.remove('hidden');
+    document.getElementById('hudLevelBadge').innerText = 'LV.1 MOTHER';
+  });
+}
+
+/* LEVEL 1 */
+function submitLevel1() {
+  const p = document.getElementById('lv1-p').value.trim();
+  const r = document.getElementById('lv1-r').value.trim();
+  const t = document.getElementById('lv1-t').value.trim();
+  const ans = document.getElementById('lv1-ans').value.trim();
+
+  if (!checkHasUnit(ans)) {
+    triggerUnitWarning();
+    return;
+  }
+
+  const pValid = (p === '1000' || p === '1,000' || p === '$1000');
+  const rValid = (r.includes('3%') || r === '0.03' || r === '3');
+  const tValid = (t === '5' || t === '5年');
+  const ansValid = (ans.includes('150'));
+
+  if (pValid && rValid && tValid && ansValid) {
+    playRetroSuccessSFX();
+    runDialogueChain([
+      {
+        bg: 'bg-livingroom',
+        speaker: '媽媽',
+        text: '「真係好叻仔/女！計得好清楚，5年單利息總共有 $150！媽媽畀啲時間你考慮下先啦～」',
+        sprite: 'mother'
+      },
+      {
+        bg: 'bg-sisterroom',
+        speaker: '姐姐',
+        text: '「等等！行過路過唔好畀阿媽呃！存5年得 $150 咁少？入黎我房聽下我個高息方案啦！」',
+        sprite: 'sister'
+      }
+    ], () => {
+      document.getElementById('screen-lv1').classList.add('hidden');
+      document.getElementById('screen-lv2').classList.remove('hidden');
+      document.getElementById('hudLevelBadge').innerText = 'LV.2 SISTER';
+    });
+  } else {
+    playRetroBuzzerSFX();
+    runDialogueChain([
+      {
+        bg: 'bg-livingroom',
+        speaker: '媽媽',
+        text: '「點搞呀？返學學成點架？連利是錢單利息都計錯！媽媽決定即時沒收你呢 $1,000 懲罰你！重頭計過啦！」',
+        sprite: 'mother'
+      }
+    ], null);
+  }
+}
+
+/* LEVEL 2 */
+function submitLevel2() {
+  const eq = document.getElementById('lv2-eq').value.trim();
+  const ans = document.getElementById('lv2-ans').value.trim();
+
+  if (!checkHasUnit(ans)) {
+    triggerUnitWarning();
+    return;
+  }
+
+  // Exact 1000 * 0.05 * 11/3 = 183.33 -> round to 183
+  const ansValid = (ans.includes('183'));
+  const eqValid = (eq.includes('1000') && (eq.includes('5%') || eq.includes('0.05')) && (eq.includes('11/3') || eq.includes('3.6') || eq.includes('44/12') || eq.includes('8/12') || eq.includes('3+8/12') || eq.includes('3.67')));
+
+  if (ansValid && eqValid) {
+    playRetroSuccessSFX();
+    runDialogueChain([
+      {
+        bg: 'bg-sisterroom',
+        speaker: '姐姐',
+        text: '「哇！連 3年8個月 換算成 11/3 年都難你唔倒！$183 回報高好多啦！快啲考慮借畀我啦～」',
+        sprite: 'sister'
+      },
+      {
+        bg: 'bg-fatherroom',
+        speaker: '爸爸',
+        text: '「哼！兩個婦人之見！單利息有乜好計？入爸爸書房，等爸爸教你咩叫『世界第八大奇蹟』——複利息！」',
+        sprite: 'father'
+      }
+    ], () => {
+      document.getElementById('screen-lv2').classList.add('hidden');
+      document.getElementById('screen-lv3').classList.remove('hidden');
+      document.getElementById('hudLevelBadge').innerText = 'LV.3 FATHER';
+    });
+  } else {
+    playRetroBuzzerSFX();
+    runDialogueChain([
+      {
+        bg: 'bg-sisterroom',
+        speaker: '姐姐',
+        text: '「你啲數學咁差，唔怪得成日畀人呃！唔配拎 $1,000 壓歲錢！我即刻叫媽媽沒收你啲錢！同我重頭計過！」',
+        sprite: 'sister'
+      }
+    ], null);
+  }
+}
+
+/* LEVEL 3 PART 1 */
+function submitLevel3Part1() {
+  const p = document.getElementById('lv3-p1').value.trim();
+  const r = document.getElementById('lv3-r1').value.trim();
+  const n = document.getElementById('lv3-n1').value.trim();
+  const ans = document.getElementById('lv3-ans1').value.trim();
+
+  if (!checkHasUnit(ans)) {
+    triggerUnitWarning();
+    return;
+  }
+
+  // 1000 * (1.05)^5 = 1276.28 -> round to 1276
+  const pValid = (p === '1000' || p === '$1000');
+  const rValid = (r.includes('5%') || r === '0.05' || r === '5');
+  const nValid = (n === '5');
+  const ansValid = (ans.includes('1276'));
+
+  if (pValid && rValid && nValid && ansValid) {
+    playRetroSuccessSFX();
+    runDialogueChain([
+      {
+        bg: 'bg-fatherroom',
+        speaker: '爸爸',
+        text: '「咳咳咳！本利和成 $1,276 咁多？！不行不行！爸爸要改方案！年利率改 3%，3.5年，但每半年計息一次！」',
+        sprite: 'father'
+      }
+    ], () => {
+      document.getElementById('lv3-part1').classList.add('hidden');
+      document.getElementById('lv3-part2').classList.remove('hidden');
+    });
+  } else {
+    playRetroBuzzerSFX();
+    runDialogueChain([
+      {
+        bg: 'bg-fatherroom',
+        speaker: '爸爸',
+        text: '「連最基本嘅年計複利息都計錯！點接管爸爸嘅金融資產？罰你面壁重新計過！」',
+        sprite: 'father'
+      }
+    ], null);
+  }
+}
+
+/* LEVEL 3 WARMUP */
+function submitWarmup() {
+  const qa = document.getElementById('lv3-qa').value.trim();
+  const qb = document.getElementById('lv3-qb').value.trim();
+  const qc = document.getElementById('lv3-qc').value.trim();
+
+  const aValid = (qa === '2' || qa === '2期' || qa === '兩');
+  const bValid = (qb === '7' || qb === '7次' || qb === '7期');
+  const cValid = (qc.includes('1.5%') || qc === '0.015' || qc === '1.5');
+
+  if (aValid && bValid && cValid) {
+    playRetroSuccessSFX();
+    document.getElementById('lv3-warmup-section').classList.add('hidden');
+    document.getElementById('lv3-final-calc-section').classList.remove('hidden');
+  } else {
+    playRetroBuzzerSFX();
+    runDialogueChain([
+      {
+        bg: 'bg-fatherroom',
+        speaker: '爸爸',
+        text: '「暖身題都錯！每半年即係一年2期，3.5年就係7期，每期利率係 3%÷2 = 1.5%！再諗清楚啲！」',
+        sprite: 'father'
+      }
+    ], null);
+  }
+}
+
+/* LEVEL 3 FINAL */
+function submitLevel3Final() {
+  const eq = document.getElementById('lv3-final-eq').value.trim();
+  const ans = document.getElementById('lv3-final-ans').value.trim();
+
+  if (!checkHasUnit(ans)) {
+    triggerUnitWarning();
+    return;
+  }
+
+  // 1000*(1.015)^7 - 1000 = 109.84 -> round to 110
+  const ansValid = (ans.includes('110'));
+  const eqValid = (eq.includes('1000') && (eq.includes('1.015') || eq.includes('1.5%') || eq.includes('0.015')) && eq.includes('7'));
+
+  if (ansValid && eqValid) {
+    playRetroSuccessSFX();
+    runDialogueChain([
+      {
+        bg: 'bg-fatherroom',
+        speaker: '爸爸',
+        text: '「完全正確！純利息四捨五入係 $110！好小子，連半年複利都考你唔倒！」',
+        sprite: 'father'
+      },
+      {
+        bg: 'bg-livingroom',
+        speaker: '我 (第一身)',
+        text: '「好！依家三個方案嘅真實底細我都一清二楚！係時候行出客廳做最後決定！」',
+        sprite: 'kid_hands'
+      }
+    ], () => {
+      document.getElementById('screen-lv3').classList.add('hidden');
+      document.getElementById('screen-choices').classList.remove('hidden');
+      document.getElementById('hudLevelBadge').innerText = 'DECISION TIME';
+    });
+  } else {
+    playRetroBuzzerSFX();
+    runDialogueChain([
+      {
+        bg: 'bg-fatherroom',
+        speaker: '爸爸',
+        text: '「算式或者最後利息計錯咗！記住利息要減返 $1,000 本金，而且要四捨五入至整數元呀！」',
+        sprite: 'father'
+      }
+    ], null);
+  }
+}
+
+/* SECRET LUCKY CAT */
+function triggerLuckyCat() {
+  playRetroCatSFX();
+  runDialogueChain([
+    {
+      bg: 'bg-livingroom',
+      speaker: '🐱 招財貓神仙',
+      text: '「喵～偵測到神秘通關密碼！招財貓直接賜予你數學大師智慧，跳過關卡直達命運終局抉擇！」',
+      sprite: 'kid_hands'
+    }
+  ], () => {
+    ['screen-cover', 'screen-lv1', 'screen-lv2', 'screen-lv3', 'screen-dad-showdown', 'screen-result'].forEach(id => {
+      document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById('screen-choices').classList.remove('hidden');
+    document.getElementById('hudBar').style.display = 'flex';
+    document.getElementById('hudLevelBadge').innerText = 'LUCKY SKIP!';
+  });
+}
+
+/* TRIGGER ENDINGS WITH FULLSCREEN ANIMATION */
+function triggerEnding(opt) {
+  document.getElementById('screen-choices').classList.add('hidden');
+
+  if (opt === 1) {
+    // Mother
+    runDialogueChain([
+      {
+        bg: 'bg-livingroom',
+        speaker: '媽媽',
+        text: '「乖仔/乖女，錢媽媽幫你鎖入保險箱！你就專注讀書，等大學畢業媽媽再畀返你啦～」',
+        sprite: 'mother'
+      },
+      {
+        bg: 'bg-livingroom',
+        speaker: '我 (第一身)',
+        text: '「等等……媽媽把鎖匙好似直接掉咗入垃圾桶……我嘅 $1,000 係咪永遠都唔會再見到？！」',
+        sprite: 'kid_hands'
+      }
+    ], () => {
+      showResultCard('BAD END 1：媽媽的「代為保管」黑洞', `
+        <p style="color:#ef5350;"><strong>結果：</strong> 媽媽收走咗你嘅 $1,000，並露出慈祥嘅微笑：「專注學業啦，媽媽幫你買咗幾套數學補充練習！」</p>
+        <p>你從此再都冇見過呢一千蚊利是錢，連原本應承嘅 $150 利息亦都化為烏有……</p>
+      `);
+    });
+  } else if (opt === 2) {
+    // Sister
+    runDialogueChain([
+      {
+        bg: 'bg-sisterroom',
+        speaker: '姐姐',
+        text: '「多謝細佬/妹！我啱啱用呢一千蚊買咗最新款嘅名牌唇膏同波鞋，好靚呀！」',
+        sprite: 'sister'
+      },
+      {
+        bg: 'bg-sisterroom',
+        speaker: '姐姐',
+        text: '「你問本金加利息？哈哈！今日姐姐教你人生最寶貴一課：『永遠唔好相信人』！呢課值千金呀！」',
+        sprite: 'sister'
+      }
+    ], () => {
+      showResultCard('BAD END 2：姐姐的「人生寶貴第一課」', `
+        <p style="color:#ef5350;"><strong>結果：</strong> 姐姐將你嘅 $1,000 全部拎去行街 Shopping 買晒化妝品。</p>
+        <p>當你要求攞返 $1,183 時，姐姐笑住同你講：「呢個社會唔係咁運作架，記住下次唔好借錢畀人喇！」</p>
+      `);
+    });
+  } else if (opt === 3) {
+    // Dad showdown
+    document.getElementById('screen-dad-showdown').classList.remove('hidden');
+  } else if (opt === 4) {
+    // Charity
+    runDialogueChain([
+      {
+        bg: 'bg-livingroom',
+        speaker: '慈善機構',
+        text: '「感謝你的無私捐贈！這裡附上受助小朋友的感謝卡與大合照，你的善心照亮了世界！」',
+        sprite: 'kid_hands'
+      },
+      {
+        bg: 'bg-livingroom',
+        speaker: '媽媽 & 爸爸',
+        text: '「我哋個仔/女真係太有愛心太乖喇！為咗獎勵你，爸爸媽媽買咗 10 本厚裝數學中三至中六奪星精讀畀你做禮物！」',
+        sprite: 'mother'
+      }
+    ], () => {
+      showResultCard('GOOD END：功德無量（附贈厚裝數學練習）', `
+        <p style="color:#66bb6a;"><strong>結果：</strong> 慈善機構寄黎厚厚嘅感謝信，你嘅愛心幫助咗無數貧困兒童！</p>
+        <p>父母得知後感動得熱淚盈眶，深感你品格高尚，決定聯手買咗 10 大本 DSE 數學奪星練習作為新年神秘禮物送畀你！</p>
+      `);
+    });
+  } else if (opt === 5) {
+    // Cake
+    runDialogueChain([
+      {
+        bg: 'bg-livingroom',
+        speaker: '我 (第一身)',
+        text: '「一啖咬落呢件特價 $20 蛋糕度……嘔！點解股牛油味怪怪地，中間舊忌廉仲酸酸地嘅？！」',
+        sprite: 'kid_hands'
+      },
+      {
+        bg: 'bg-livingroom',
+        speaker: '我 (第一身)',
+        text: '「慘喇……食到過期蛋糕肚痛，仲要自己洗衫，枕頭底藏住嘅 $980 亦因為通脹日漸縮水……」',
+        sprite: 'kid_hands'
+      }
+    ], () => {
+      showResultCard('UNLUCKY END：難食的過期蛋糕', `
+        <p style="color:#ffa726;"><strong>結果：</strong> 你食咗一件超難食嘅過期特價蛋糕，腸胃炎睇醫生用咗一筆錢。</p>
+        <p>雖然成功喺枕頭底保住 $980 現金，但身心受創，金錢亦因通脹逐漸貶值……</p>
+      `);
+    });
+  }
+}
+
+/* DAD SHOWDOWN CHOICE */
+function handleDadChoice(choice) {
+  document.getElementById('screen-dad-showdown').classList.add('hidden');
+
+  if (choice === 'wrong') {
+    // RICH END
+    spawnCoinRain();
+    runDialogueChain([
+      {
+        bg: 'bg-fatherroom',
+        speaker: '我 (第一身)',
+        text: '「等陣先！本金 $1,000 + 半年複利息 $110，明明總數係 $1,110！老豆你畀得 $1,050，少咗足足 $60！想抽我水？！」',
+        sprite: 'kid_hands'
+      },
+      {
+        bg: 'bg-fatherroom',
+        speaker: '爸爸',
+        text: '「哈哈哈哈哈！好小子！原本想扣你 $60 買杯凍檸茶，估唔到真係考你唔倒！你真係長大成人、精明理財喇！」',
+        sprite: 'father'
+      }
+    ], () => {
+      showResultCard('RICH END：精明理財大贏家！', `
+        <p style="color:#ffd700;"><strong>大獲全勝！</strong> 爸爸開懷大笑，爽快咁補足返少畀嘅 $60，將足額 <strong>$1,110</strong> 雙手交到你手上！</p>
+        <p>爸爸大讚你數學思維縝密、唔容易畀數字欺騙，並決定日後全數將屋企嘅股票投資交由你幫手打理！</p>
+      `);
+    });
+  } else {
+    // SCAM END
+    runDialogueChain([
+      {
+        bg: 'bg-fatherroom',
+        speaker: '爸爸',
+        text: '「哈哈！乖喇乖喇！快啲去買雪糕食啦～（轉身吹口哨：耶！成功扣起 $60 私己錢落袋！）」',
+        sprite: 'father'
+      },
+      {
+        bg: 'bg-fatherroom',
+        speaker: '我 (第一身)',
+        text: '「雖然總覺得邊度唔係好啱……但有 $1,050 喺手，算啦……」',
+        sprite: 'kid_hands'
+      }
+    ], () => {
+      showResultCard('SCAM END：被老豆成功「抽水」', `
+        <p style="color:#ef5350;"><strong>結果：</strong> 你滿心歡喜收下 $1,050，但其實爸爸暗中扣起咗應承畀你嘅 $60 利息！</p>
+        <p>爸爸用呢 $60 買咗兩杯大凍檸茶，而你因為對數字唔夠敏銳，默默做咗受害者……</p>
+      `);
+    });
+  }
+}
+
+function showResultCard(title, htmlContent) {
+  document.getElementById('resultTitle').innerHTML = title;
+  document.getElementById('resultBody').innerHTML = htmlContent;
+  document.getElementById('screen-result').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
+```
